@@ -32,6 +32,19 @@ Run the following command in the root of your repository:
 make cicd
 ```
 
+Example Output:
+
+```bash
+richard.barrett@206-FTourniaire-Mac  ~/Git/Golang/go-datalake-sync   main  echo -e '.PHONY: cicd\n\ncicd:\n\tcurl -sS https://raw.githubusercontent.com/Richard-Barrett/codefreshcicd/main/generate_cicd_files.sh | bash\n' | cat - Makefile > temp && mv temp Makefile
+
+richard.barrett@206-FTourniaire-Mac  ~/Git/Golang/go-datalake-sync   main ±  make cicd
+curl -sS https://raw.githubusercontent.com/Richard-Barrett/codefreshcicd/main/generate_cicd_files.sh | bash
+YAML files created successfully:
+go-datalake-sync-precommit.yml
+go-datalake-sync-tagging.yml
+go-datalake-sync-integration.yml
+```
+
 The script `generate_cicd_files.sh` performs the following actions:
 - Dynamically retrieves the repository name.
 - Generates three YAML files:
