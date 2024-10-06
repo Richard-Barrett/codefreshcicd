@@ -1,3 +1,5 @@
+<img align="right" width="60" height="60" src="images/codefresh.png">
+
 # Codefresh CICD
 
 A Repository with a collection of CICD Codefresh Scripts  that allows one to make a bunch of Codefresh CICD Pipelines as a callable script

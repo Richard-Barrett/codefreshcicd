@@ -19,23 +19,36 @@ steps:
 
   install_and_run_all:
     title: "Install Tools and Run Pre-Commit Hooks"
-    image: python:3.10
+    image: python:3.10  # Or use a different base image if needed
     stage: "PreCommit Check"
     commands:
+      # Install Terraform
       - wget https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_linux_amd64.zip
       - unzip terraform_1.5.0_linux_amd64.zip
       - mv terraform /usr/local/bin/
+
+      # Install TFLint
       - curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+
+      # Install Terraform Docs
       - wget https://github.com/terraform-docs/terraform-docs/releases/download/v0.16.0/terraform-docs-v0.16.0-linux-amd64.tar.gz
       - tar -xvzf terraform-docs-v0.16.0-linux-amd64.tar.gz
       - mv terraform-docs /usr/local/bin/
+
+      # Install pre-commit
       - python -m pip install --upgrade pip
       - pip install pre-commit
+
+      # Disable strict host key checking
       - echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config
+
+      # Verify installations
       - terraform --version
       - tflint --version
       - terraform-docs --version
       - pre-commit --version
+
+      # Run pre-commit hooks
       - cd ${{CF_VOLUME_PATH}}/${{CF_REPO_NAME}}
       - pre-commit run --all-files
 '
@@ -55,7 +68,7 @@ steps:
     repo: "${{CF_REPO_NAME}}"
     revision: "${{CF_BRANCH}}"
     stage: "clone"
-  
+
   detect_last_tag:
     title: "Detecting last tag"
     type: "freestyle"
@@ -68,7 +81,7 @@ steps:
     volumes:
       - name: env_vars_to_export
         path: /codefresh/volume/env_vars_to_export
-  
+
   determine_new_version:
     title: "Determining new version"
     type: "freestyle"
@@ -94,7 +107,7 @@ steps:
     volumes:
       - name: env_vars_to_export
         path: /codefresh/volume/env_vars_to_export
-  
+
   tag_and_push:
     title: "Tagging and pushing to repository"
     type: "freestyle"
