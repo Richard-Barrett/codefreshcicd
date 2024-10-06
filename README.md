@@ -41,3 +41,18 @@ The script `generate_cicd_files.sh` performs the following actions:
 
 The script does not overwrite existing files, so if the YAML files already exist, it will leave them intact.
 If you want to see what the `precommit.yml`, `tagging.yml`, and `integration.yml` look like, navigate to the [Codefresh]() directory.
+
+## BitBucket CI/CD Updater Overview
+
+This Python script automates the process of updating all repositories in a specified BitBucket workspace with essential CI/CD configuration files, including YAML files and a Makefile. It supports on-prem BitBucket instances with custom CNAME URLs.
+
+### Quick Start
+
+To run the script, use the following command:
+
+```bash
+python3 bitbucket/update_bitbucket_repos_with_cicd.py --api_token YOUR_API_TOKEN --workspace YOUR_WORKSPACE --clone_dir /path/to/clone --bitbucket_url https://bitbucket.example.com
+```
+
+For detailed instructions, prerequisites, and troubleshooting, please refer to the [BitBucket CI/CD Updater README](https://github.com/Richard-Barrett/codefreshcicd/blob/main/bitbucket/README.md).
+
