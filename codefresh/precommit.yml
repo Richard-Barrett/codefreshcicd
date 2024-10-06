@@ -1,0 +1,47 @@
+version: "1.0"
+stages:
+  - "PreCommit Check"
+
+steps:
+  clone_repo:
+    title: "Clone Repository"
+    type: "git-clone"
+    repo: "${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}"
+    revision: "${{CF_BRANCH_TAG_NORMALIZED}}"
+    stage: "PreCommit Check"
+
+  install_and_run_all:
+    title: "Install Tools and Run Pre-Commit Hooks"
+    image: python:3.10  # Or use a different base image if needed
+    stage: "PreCommit Check"
+    commands:
+      # Install Terraform
+      - wget https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_linux_amd64.zip
+      - unzip terraform_1.5.0_linux_amd64.zip
+      - mv terraform /usr/local/bin/
+
+      # Install TFLint
+      - curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+
+      # Install Terraform Docs
+      - wget https://github.com/terraform-docs/terraform-docs/releases/download/v0.16.0/terraform-docs-v0.16.0-linux-amd64.tar.gz
+      - tar -xvzf terraform-docs-v0.16.0-linux-amd64.tar.gz
+      - mv terraform-docs /usr/local/bin/
+
+      # Install pre-commit
+      - python -m pip install --upgrade pip
+      - pip install pre-commit
+
+      # Disable strict host key checking
+      - echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config
+
+      # Verify installations
+      - terraform --version
+      - tflint --version
+      - terraform-docs --version
+      - pre-commit --version
+
+      # Run pre-commit hooks
+      - cd ${{CF_VOLUME_PATH}}/${{CF_REPO_NAME}}
+      - pre-commit run --all-files
+ 
