@@ -19,36 +19,23 @@ steps:
 
   install_and_run_all:
     title: "Install Tools and Run Pre-Commit Hooks"
-    image: python:3.10  # Or use a different base image if needed
+    image: python:3.10
     stage: "PreCommit Check"
     commands:
-      # Install Terraform
       - wget https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_linux_amd64.zip
       - unzip terraform_1.5.0_linux_amd64.zip
       - mv terraform /usr/local/bin/
-
-      # Install TFLint
       - curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-
-      # Install Terraform Docs
       - wget https://github.com/terraform-docs/terraform-docs/releases/download/v0.16.0/terraform-docs-v0.16.0-linux-amd64.tar.gz
       - tar -xvzf terraform-docs-v0.16.0-linux-amd64.tar.gz
       - mv terraform-docs /usr/local/bin/
-
-      # Install pre-commit
       - python -m pip install --upgrade pip
       - pip install pre-commit
-
-      # Disable strict host key checking
       - echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config
-
-      # Verify installations
       - terraform --version
       - tflint --version
       - terraform-docs --version
       - pre-commit --version
-
-      # Run pre-commit hooks
       - cd ${{CF_VOLUME_PATH}}/${{CF_REPO_NAME}}
       - pre-commit run --all-files
 '
@@ -68,7 +55,7 @@ steps:
     repo: "${{CF_REPO_NAME}}"
     revision: "${{CF_BRANCH}}"
     stage: "clone"
-
+  
   detect_last_tag:
     title: "Detecting last tag"
     type: "freestyle"
@@ -81,7 +68,7 @@ steps:
     volumes:
       - name: env_vars_to_export
         path: /codefresh/volume/env_vars_to_export
-
+  
   determine_new_version:
     title: "Determining new version"
     type: "freestyle"
@@ -107,7 +94,7 @@ steps:
     volumes:
       - name: env_vars_to_export
         path: /codefresh/volume/env_vars_to_export
-
+  
   tag_and_push:
     title: "Tagging and pushing to repository"
     type: "freestyle"
@@ -123,12 +110,36 @@ steps:
 # Define custom content for integration.yml
 integration_content="# Your custom integration.yml content goes here"
 
-# Create the YAML files
-echo "$precommit_content" > "${repo_name}-precommit.yml"
-echo "$tagging_content" > "${repo_name}-tagging.yml"
-echo "$integration_content" > "${repo_name}-integration.yml"
+# Define content for .pre-commit-config.yaml
+pre_commit_config_content='---
+repos:
+  - repo: git://github.com/pre-commit/pre-commit-hooks
+    rev: v4.0.1
+    hooks:
+      - id: check-merge-conflict
+      - id: check-shebang-scripts-are-executable
+      - id: trailing-whitespace
+  - repo: https://github.com/gruntwork-io/pre-commit
+    rev: v0.1.17
+    hooks:
+      - id: shellcheck
+'
 
-echo "YAML files created successfully:"
-echo "${repo_name}-precommit.yml"
-echo "${repo_name}-tagging.yml"
-echo "${repo_name}-integration.yml"
+# Function to create a file if it does not exist
+create_file_if_missing() {
+  local filename="$1"
+  local content="$2"
+  
+  if [[ ! -f "$filename" ]]; then
+    echo "$content" > "$filename"
+    echo "Created $filename"
+  else
+    echo "$filename already exists. Skipping..."
+  fi
+}
+
+# Create the YAML files if they are missing
+create_file_if_missing "${repo_name}-precommit.yml" "$precommit_content"
+create_file_if_missing "${repo_name}-tagging.yml" "$tagging_content"
+create_file_if_missing "${repo_name}-integration.yml" "$integration_content"
+create_file_if_missing ".pre-commit-config.yaml" "$pre_commit_config_content"
